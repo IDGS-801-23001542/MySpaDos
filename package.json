@@ -1,0 +1,26 @@
+{
+  "name": "myspa2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB -c cyan,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start -w server",
+    "seed": "node scripts/seed.mjs",
+    "seed:check": "node scripts/seed.mjs --check",
+    "check": "node scripts/check.mjs && npm run test",
+    "test": "node scripts/selftest.mjs && node scripts/pwa-check.mjs",
+    "admin:password": "node scripts/set-admin-password.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import { clientCode, employeeCode, fallbackClientCode } from '../server/src/lib/numberCodes.js';
+import { cents, productCost, sumCosts } from '../server/src/lib/costs.js';
+import { validCalendarDate, spaInstant } from '../server/src/lib/time.js';
+import { totalProductUsage, inventoryDeltas } from '../server/src/lib/inventory.js';
+
+assert.equal(employeeCode('SAVM900215AB1'), 'SAVM');
+assert.equal(employeeCode('ÑVAA900215AB1'), 'ÑVAA');
+assert.equal(clientCode({ rfc: 'SAVM900215AB1' }), 'SAVM');
+assert.equal(clientCode({ rfc: '', lastName: 'García', secondLastName: 'Cruz', name: 'Mateo' }), 'GACM');
+assert.equal(fallbackClientCode({ lastName: 'Stry', secondLastName: '', name: 'Álex' }), 'SXXA');
+assert.equal(productCost(99.95, 3), 299.85);
+assert.equal(sumCosts([299.85, 40.2, 0.1]), 340.15);
+assert.equal(cents(19.99), 1999);
+assert.equal(validCalendarDate('2028-02-29'), true);
+assert.equal(validCalendarDate('2027-02-29'), false);
+assert.equal(validCalendarDate('2026-13-15'), false);
+assert.equal(spaInstant('2026-11-15', '10:00').toISOString(), '2026-11-15T16:00:00.000Z');
+const before = [{ products: [{ productId: 1, quantity: 2 }, { productId: 2, quantity: 1 }] }];
+const after = [{ products: [{ productId: 1, quantity: 3 }, { productId: 3, quantity: 4 }] }];
+assert.equal(totalProductUsage(before).get(1), 2);
+assert.equal(inventoryDeltas(after, before).get(1), -1);
+assert.equal(inventoryDeltas(after, before).get(2), 1);
+assert.equal(inventoryDeltas(after, before).get(3), -4);
+assert.equal(inventoryDeltas(before, before).size, 0);
+console.log('17 comprobaciones unitarias de RFC, costos, fechas, zona horaria e inventario: correctas');
