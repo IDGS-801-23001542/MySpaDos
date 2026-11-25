@@ -47,6 +47,8 @@ router.get('/:id', route(async (req, res) => {
   assert(item, 404, 'Imagen no encontrada');
   const url = `/api/media/${req.params.id}`;
   const isPublic = !!(await col('rooms').findOne({ photoUrl: url, status: 'ACTIVO' }));
+  // The offline catalogue uses a separate, strictly public URL.
+  if (req.query.public === '1') assert(isPublic, 403, 'Imagen no pública');
   if (!isPublic) {
     const ownImage = item.ownerUserId === req.user?.id;
     const clientProfile = req.user?.role === 'CLIENTE'

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarCheck2, DoorOpen, Heart, Hourglass, Leaf, MapPin, ShieldCheck, Sparkles, Waves } from 'lucide-react';
-import { api } from '../lib.js';
+import { api, publicRoomPhoto } from '../lib.js';
 import { Empty, StatusBadge } from '../components/UI.jsx';
 import BrandFlower from '../components/BrandFlower.jsx';
 
@@ -119,7 +119,7 @@ export default function HomePage() {
                 >
                   <div className="room-card-image">
                     {room.photoUrl ? (
-                      <img src={room.photoUrl} alt={room.name} />
+                      <img src={publicRoomPhoto(room.photoUrl)} alt={room.name} />
                     ) : (
                       <div className="room-illustration"><DoorOpen size={70} strokeWidth={0.9} /></div>
                     )}

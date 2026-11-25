@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowUpRight, CalendarDays, Clock3, DoorOpen,
   MapPin, Search, ShieldCheck, WifiOff,
 } from 'lucide-react';
-import { api, localDateISO } from '../lib.js';
+import { api, localDateISO, publicRoomPhoto } from '../lib.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { useOnlineStatus } from '../hooks/useOnlineStatus.js';
 import { useDebounce } from '../hooks/useDebounce.js';
@@ -14,9 +14,8 @@ import { Alert, Empty, Field, PageHeader, PrimaryButton, Spinner } from '../comp
 function RoomArtwork({ room, online, large = false }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [room.photoUrl, online]);
-  const local = /^\/rooms\/[^/]+\.webp$/.test(room.photoUrl || '');
-  if (room.photoUrl && (online || local) && !failed) {
-    return <img src={room.photoUrl} alt={`Fotografía de ${room.name}`} loading={large ? 'eager' : 'lazy'}
+  if (room.photoUrl && !failed) {
+    return <img src={publicRoomPhoto(room.photoUrl)} alt={`Fotografía de ${room.name}`} loading="eager"
       onError={() => setFailed(true)} />;
   }
   return <div className="room-illustration" aria-label={`Imagen ilustrativa de ${room.name}`}>

@@ -52,7 +52,47 @@ assert.equal(intercept('/api/reservations'), false);
 assert.equal(intercept('/api/services'), false);
 assert.equal(intercept('/api/auth/me'), false);
 assert.equal(intercept('/api/media/68ceab123456789012345678'), false);
+assert.equal(intercept('/api/media/68ceab123456789012345678?public=1'), true);
+assert.equal(intercept('/api/media/68ceab123456789012345678?public=1', 'POST'), false);
 assert.equal(intercept('/api/reservations', 'POST'), false);
 assert.equal(intercept('/api/reservations/1/cancel', 'POST'), false);
 assert.equal(intercept('/mi-cuenta', 'GET', 'navigate'), true);
-console.log('PWA: manifest e iconos presentes; 11 rutas verificadas para caché u operación online.');
+console.log('PWA: manifest e iconos presentes; 13 rutas verificadas para caché u operación online.');
+
+// Exercise real cache behavior, not only route matching.
+const stored = new Map();
+let network = 'public';
+const photoRequest = { url: 'https://myspa2.test/api/media/68ceab123456789012345678?public=1', method: 'GET' };
+const photoCache = {
+  async put(req, res) { stored.set(req.url, res); },
+  async match(req) { return stored.get(req.url); },
+  async keys() { return [...stored.keys()]; },
+  async delete(req) { return stored.delete(req.url || req); },
+};
+const runtime = { self, URL, Response, caches: { open: async () => photoCache },
+  fetch: async (_req, options) => {
+    assert.equal(options.credentials, 'omit');
+    if (network === 'offline') throw new Error('offline');
+    const publicPhoto = network === 'public';
+    const response = new Response('photo', { status: publicPhoto ? 200 : 403,
+      headers: { 'Cache-Control': publicPhoto ? 'public, max-age=86400' : 'private, no-store', 'Content-Type': 'image/webp' } });
+    // Browser same-origin responses are basic; Node synthetic responses are default.
+    Object.defineProperty(response, 'type', { value: 'basic' });
+    return response;
+  } };
+vm.runInNewContext(code, runtime);
+function loadPhoto() {
+  let result;
+  listeners.fetch({ request: photoRequest, respondWith(promise) { result = promise; } });
+  return result;
+}
+assert.equal((await loadPhoto()).status, 200);
+assert.equal(stored.size, 1);
+network = 'offline';
+assert.equal(await (await loadPhoto()).text(), 'photo');
+network = 'private';
+assert.equal((await loadPhoto()).status, 403);
+assert.equal(stored.size, 0);
+network = 'offline';
+assert.equal((await loadPhoto()).type, 'error');
+console.log('PWA: foto pública offline y revocación online verificadas.');

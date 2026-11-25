@@ -70,3 +70,8 @@ export function localDateTimeInput(value = new Date()) {
     .toISOString()
     .slice(0, 16);
 }
+
+// Separate public room photos from private profile photos in the PWA cache.
+export function publicRoomPhoto(url) {
+  return /^\/api\/media\/[a-f0-9]{24}$/i.test(url || '') ? `${url}?public=1` : url;
+}
