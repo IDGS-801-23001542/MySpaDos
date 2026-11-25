@@ -163,7 +163,7 @@ export default function AccountPage({ mode = 'bookings' }) {
                   <span><Clock3 size={16} /> {item.scheduleText} · {item.partySize || 1} persona(s)</span>
                 </div>
               </div>
-              {item.status === 'PENDIENTE' && (
+              {item.status === 'PENDIENTE' && (!item.endAt || new Date(item.endAt) > new Date()) && (
                 <button className="button button-danger-outline" disabled={busy} onClick={() => cancelBooking(item.id)}>
                   Cancelar
                 </button>

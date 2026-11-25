@@ -66,7 +66,7 @@ export default function CatalogPage({ resource }) {
   async function load() {
     const query = new URLSearchParams();
     if (debouncedQuery) query.set('q', debouncedQuery);
-    if (status) query.set('status', status);
+    if (resource !== 'schedules' && status) query.set('status', status);
     try { setItems(await api(`/manage/${resource}?${query}`)); }
     catch (e) { setError(e.message); }
   }

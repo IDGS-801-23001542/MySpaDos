@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { connectDatabase, ensureIndexes } from './lib/db.js';
 import { config } from './lib/config.js';
+import { reconcileExpiredReservations, NO_SHOW_GRACE_MINUTES } from './lib/attendance.js';
 import { duplicateFieldMessage } from './lib/accountFields.js';
 import { authenticate, csrfGuard } from './lib/security.js';
 import auth from './routes/auth.js';
@@ -68,8 +69,14 @@ app.use((error, _req, res, _next) => {
 try {
   await connectDatabase();
   await ensureIndexes();
+  // Reconciliar al iniciar y periódicamente: no depende de que alguien abra la web.
+  await reconcileExpiredReservations();
+  const attendanceTimer = setInterval(() => {
+    reconcileExpiredReservations().catch((error) => console.error('[Asistencia]', error));
+  }, 60_000);
+  attendanceTimer.unref?.();
   app.listen(config.port, () => {
-    console.log(`[MySpa2] API lista en http://127.0.0.1:${config.port} (Atlas: ${config.databaseName})`);
+    console.log(`[MySpa2] API lista en http://127.0.0.1:${config.port} (Atlas: ${config.databaseName}, no-show: ${NO_SHOW_GRACE_MINUTES} min)`);
   });
 } catch (error) {
   console.error('[MySpa2] No se pudo iniciar:', error.message);

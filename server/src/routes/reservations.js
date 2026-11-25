@@ -5,6 +5,7 @@ import { col, nextId } from '../lib/db.js';
 import { assert, HttpError, idParam, publicRecord, route, searchRegex, validate } from '../lib/http.js';
 import { requireUser, assertSameBranch, isStaff } from '../lib/security.js';
 import { notifyBooking } from '../lib/mailer.js';
+import { reconcileExpiredReservations } from '../lib/attendance.js';
 
 const router = Router();
 router.use(requireUser);
@@ -67,6 +68,7 @@ async function bookingDetails(booking) {
 }
 
 router.get('/', route(async (req, res) => {
+  await reconcileExpiredReservations(); // Incluye las citas viejas del dataset de prueba.
   const filter = {};
   if (req.user.role === 'CLIENTE') {
     const client = await clientProfile(req);
@@ -77,7 +79,7 @@ router.get('/', route(async (req, res) => {
     assert(employee, 403, 'Cuenta de empleado inactiva');
     if (req.user.role !== 'ADMIN') filter.branchId = employee.branchId;
   }
-  if (req.query.status && ['PENDIENTE', 'ATENDIDA', 'CANCELADA'].includes(req.query.status)) filter.status = req.query.status;
+  if (req.query.status && ['PENDIENTE', 'ATENDIDA', 'CANCELADA', 'NO_ASISTIO'].includes(req.query.status)) filter.status = req.query.status;
   const reservations = await col('reservations')
     .find(filter)
     .sort({ createdAt: -1 })
@@ -164,6 +166,7 @@ router.patch('/:id', route(async (req, res) => {
   assert(old, 404, 'Reservación no encontrada');
   assertSameBranch(employee, old.branchId, req.user);
   assert(old.status === 'PENDIENTE', 409, 'Solo se pueden modificar reservaciones pendientes');
+  assert(new Date(old.endAt) > new Date(), 409, 'No puedes modificar una cita cuyo horario ya terminó');
   const input = validate(bookingSchema, req.body);
   const [room, slot, client] = await Promise.all([
     col('rooms').findOne({ id: input.roomId, status: 'ACTIVO' }),
@@ -207,6 +210,7 @@ router.post('/:id/cancel', route(async (req, res) => {
     assertSameBranch(await employeeProfile(req), item.branchId, req.user);
   }
   assert(item.status === 'PENDIENTE', 409, 'Solo se pueden cancelar reservaciones pendientes');
+  assert(new Date(item.endAt) > new Date(), 409, 'La cita ya terminó; corresponde confirmar asistencia');
   const changed = await col('reservations').findOneAndUpdate(
     { id, status: 'PENDIENTE' },
     { $set: { status: 'CANCELADA', blocksSlot: false, updatedAt: new Date() } },
@@ -219,6 +223,30 @@ router.post('/:id/cancel', route(async (req, res) => {
   ]);
   await notifyBooking(changed, client, room, 'CANCELADA');
   res.json({ data: await bookingDetails(changed) });
+}));
+
+// Solo personal autorizado, y solo después del fin de la cita.
+router.post('/:id/no-show', route(async (req, res) => {
+  assert(isStaff(req.user), 403, 'Solo el personal puede confirmar una ausencia');
+  const id = idParam(req.params.id);
+  const booking = await col('reservations').findOne({ id });
+  assert(booking, 404, 'Reservación no encontrada');
+  assertSameBranch(await employeeProfile(req), booking.branchId, req.user);
+  assert(booking.status === 'PENDIENTE', 409, 'La reservación ya fue resuelta');
+  assert(booking.endAt && new Date(booking.endAt) <= new Date(), 409,
+    'Debes esperar a que termine el horario para marcar la ausencia');
+  assert(!await col('services').findOne({ reservationId: id }), 409,
+    'Esta reservación ya tiene un servicio registrado');
+  const now = new Date();
+  const result = await col('reservations').findOneAndUpdate(
+    { id, status: 'PENDIENTE', endAt: { $lte: now } },
+    { $set: { status: 'NO_ASISTIO', blocksSlot: false,
+      attendanceDecision: 'MANUAL', attendanceMarkedAt: now,
+      attendanceByUserId: req.user.id, updatedAt: now } },
+    { returnDocument: 'after' },
+  );
+  assert(result, 409, 'Otra persona ya resolvió esta reservación');
+  res.json({ data: await bookingDetails(result) });
 }));
 
 export default router;

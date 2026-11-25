@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144" role="img" aria-label="Flor de MySpa2">
+ <g fill="none" stroke="#557462" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" />
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(45 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(90 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(135 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(180 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(225 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(270 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(315 72 72)"/>
+ </g>
+</svg>

@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#315943"/><g fill="#EEE7DB"><ellipse cx="32" cy="20" rx="8" ry="13"/><ellipse cx="32" cy="44" rx="8" ry="13"/><ellipse cx="20" cy="32" rx="13" ry="8"/><ellipse cx="44" cy="32" rx="13" ry="8"/></g><circle cx="32" cy="32" r="9" fill="#C2A477"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144" >
+ <g fill="none" stroke="#557462" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" />
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(45 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(90 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(135 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(180 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(225 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(270 72 72)"/>
+  <ellipse cx="72" cy="46" rx="14.5" ry="29.7" transform="rotate(315 72 72)"/>
+ </g>
+</svg>

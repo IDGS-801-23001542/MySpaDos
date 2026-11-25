@@ -1,22 +1,21 @@
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useReducer } from 'react';
 import { api, setCsrf } from '../lib.js';
+import { initialAuthState, authReducer } from '../reducers/authReducer.js';
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [identity, setIdentity] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [state, dispatch] = useReducer(authReducer, initialAuthState);
+  const { identity, loading } = state;
 
   const refresh = useCallback(async () => {
     try {
       const result = await api('/auth/me');
-      setIdentity(result);
+      dispatch({ type: 'IDENTITY_LOADED', identity: result });
       setCsrf(result?.csrf);
     } catch {
-      setIdentity(null);
+      dispatch({ type: 'LOGGED_OUT' });
       setCsrf('');
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -24,21 +23,21 @@ export function AuthProvider({ children }) {
 
   const login = async (body) => {
     const result = await api('/auth/login', { method: 'POST', body });
-    setIdentity(result);
+    dispatch({ type: 'AUTHENTICATED', identity: result });
     setCsrf(result.csrf);
     return result;
   };
 
   const register = async (body) => {
     const result = await api('/auth/register', { method: 'POST', body });
-    setIdentity(result);
+    dispatch({ type: 'AUTHENTICATED', identity: result });
     setCsrf(result.csrf);
     return result;
   };
 
   const logout = async () => {
     try { await api('/auth/logout', { method: 'POST' }); }
-    finally { setIdentity(null); setCsrf(''); }
+    finally { dispatch({ type: 'LOGGED_OUT' }); setCsrf(''); }
   };
 
   return (

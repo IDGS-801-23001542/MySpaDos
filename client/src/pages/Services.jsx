@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ClipboardList, Edit3, Plus, PlusCircle, ReceiptText, Search, Trash2, X } from 'lucide-react';
 import { api, dateLabel, money, shortDate, localDateTimeInput } from '../lib.js';
 import { useAuth } from '../hooks/useAuth.js';
@@ -24,6 +25,7 @@ const base = { reservationId: '', employeeId: '', dateTime: '', treatments: [new
 
 export default function ServicesPage() {
   const { identity } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -54,6 +56,17 @@ export default function ServicesPage() {
   const myEmployees = employees.filter((employee) =>
     employee.branchId === (selectedBooking?.branchId || identity.profile.branchId));
   const availableReservations = reservations.filter((r) => r.status === 'PENDIENTE');
+
+  useEffect(() => {
+    const id = Number(searchParams.get('reservacion'));
+    if (!Number.isSafeInteger(id) || id <= 0 || !reservations.length || !treatments.length) return;
+    const booking = reservations.find((item) => item.id === id && item.status === 'PENDIENTE');
+    if (!booking) return;
+    setEdit('new'); setError('');
+    setForm({ ...base, reservationId: booking.id, employeeId: identity.profile.id,
+      dateTime: localDateTimeInput(), treatments: suggestedLines(booking, treatments) });
+    setSearchParams({}, { replace: true });
+  }, [searchParams, reservations, treatments, identity.profile.id, setSearchParams]);
 
   const preview = useMemo(() => {
     let sum = 0;

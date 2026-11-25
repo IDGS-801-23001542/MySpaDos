@@ -952,3 +952,27 @@ select { appearance: auto; }
 @media (prefers-reduced-motion: reduce) {
   .featured-carousel-dot { transition: none; }
 }
+
+/* MySpa2 · identidad floral y galería renovada (2026-11-25) */
+.myspa-flower { display: block; width: 100%; height: 100%; object-fit: contain; }
+.brand-symbol { width: 49px; height: 49px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.brand-symbol .myspa-flower { width: 45px; height: 45px; }
+.hero-art-circle .myspa-flower { width: min(72%, 172px); height: auto; aspect-ratio: 1; }
+.profile-avatar .myspa-flower { width: 60%; height: 60%; }
+.person-avatar .myspa-flower { width: 70%; height: 70%; }
+.room-grid .room-card-image { height: auto; aspect-ratio: 16 / 10; }
+.room-grid .room-card-image > img { width: 100%; height: 100%; object-fit: cover; object-position: center center; transition: transform .5s ease; }
+.room-grid .room-card:hover .room-card-image > img { transform: scale(1.025); }
+.room-detail-art img { width: 100%; height: auto; min-height: 350px; max-height: 520px; aspect-ratio: 16 / 10; object-fit: cover; }
+.room-grid .room-card-body { padding-top: 22px; }
+.attendance-brand-mark { margin: 0 auto 4px; width: 76px; height: 76px; display: grid; place-items: center; }
+.attendance-booking-info { display: grid; gap: 12px; border-radius: 18px; background: #f4f1e9; border: 1px solid #e6e1d7; padding: 21px 23px; color: #3c4c40; font-size: 13px; }
+.attendance-booking-info strong { color: #315943; margin-right: 7px; }
+.attendance-content > .muted { line-height: 1.75; font-size: 12px; }
+@media (max-width: 700px) {
+  .brand-symbol { width: 40px; height: 40px; }
+  .brand-symbol .myspa-flower { width: 38px; height: 38px; }
+  .room-grid.room-grid-featured .room-card-image { height: auto; aspect-ratio: 16 / 10; }
+  .room-detail-art img { height: auto; min-height: 230px; }
+  .attendance-booking-info { padding: 16px; font-size: 12px; }
+}

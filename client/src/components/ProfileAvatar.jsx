@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Flower2 } from 'lucide-react';
+import BrandFlower from './BrandFlower.jsx';
 
 /** Shared avatar for staff and customers. Missing or broken photos show MySpa2's flower. */
 export function ProfileAvatar({ photoUrl, name = 'usuario', className = '', iconSize = 34 }) {
@@ -25,7 +25,7 @@ export function ProfileAvatar({ photoUrl, name = 'usuario', className = '', icon
           onError={() => setImageError(true)}
         />
       ) : (
-        <Flower2 size={iconSize} strokeWidth={1.45} aria-hidden="true" />
+        <BrandFlower size={iconSize} />
       )}
     </span>
   );

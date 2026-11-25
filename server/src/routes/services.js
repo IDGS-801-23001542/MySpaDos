@@ -5,6 +5,7 @@ import { assert, HttpError, idParam, publicRecord, route, validate } from '../li
 import { requireUser, assertSameBranch, isStaff } from '../lib/security.js';
 import { productCost, sumCosts } from '../lib/costs.js';
 import { inventoryDeltas } from '../lib/inventory.js';
+import { reconcileExpiredReservations } from '../lib/attendance.js';
 
 const router = Router();
 router.use(requireUser);
@@ -102,6 +103,7 @@ router.get('/:id', route(async (req, res) => {
 router.post('/', route(async (req, res) => {
   assert(isStaff(req.user), 403, 'Solo los empleados registran servicios');
   const input = validate(serviceSchema, req.body);
+  await reconcileExpiredReservations();
   const booking = await col('reservations').findOne({ id: input.reservationId });
   assert(booking, 404, 'Reservación no encontrada');
   assertSameBranch(await employeeProfile(req), booking.branchId, req.user);

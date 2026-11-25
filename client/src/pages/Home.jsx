@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarCheck2, DoorOpen, Flower2, Heart, Hourglass, Leaf, MapPin, ShieldCheck, Sparkles, Waves } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarCheck2, DoorOpen, Heart, Hourglass, Leaf, MapPin, ShieldCheck, Sparkles, Waves } from 'lucide-react';
 import { api } from '../lib.js';
 import { Empty, StatusBadge } from '../components/UI.jsx';
+import BrandFlower from '../components/BrandFlower.jsx';
 
 const benefits = [
   { icon: Hourglass, title: 'Tu tiempo, tu ritmo', text: 'Momentos diseñados para recuperar la calma, sin prisas.' },
@@ -84,7 +85,7 @@ export default function HomePage() {
         </div>
         <div className="hero-art" aria-label="Ilustración abstracta de bienestar">
           <div className="hero-aura hero-aura-one" /><div className="hero-aura hero-aura-two" />
-          <div className="hero-art-frame"><div className="hero-art-circle"><Flower2 size={120} strokeWidth={0.7} /></div></div>
+          <div className="hero-art-frame"><div className="hero-art-circle"><BrandFlower size={172} /></div></div>
           <div className="hero-art-note"><span>01 / 03</span><strong>Respira.</strong><small>Este momento es tuyo</small></div>
         </div>
       </section>

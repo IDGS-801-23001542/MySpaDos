@@ -78,8 +78,12 @@ export function ForgotPage() {
     event.preventDefault(); setError(''); setBusy(true);
     try {
       const result = await api('/auth/forgot-password', { method: 'POST', body: { email } });
-      setMessage(result.message);
-      if (!result.smtpConfigured) setError('El envío de correo todavía no está configurado en el servidor.');
+      if (result.smtpConfigured) {
+        setMessage(result.message);
+      } else {
+        setMessage('');
+        setError('La recuperación no está disponible. Pide al administrador revisar SMTP y el secreto de recuperación en el servidor.');
+      }
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }

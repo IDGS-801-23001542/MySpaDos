@@ -218,9 +218,9 @@ async function setupDemoUser(person, role, branchId) {
 // No utiliza dropDatabase ni dropCollection (requieren permisos más altos).
 // Una transacción evita un reset parcialmente aplicado si alguna operación falla.
 const APP_COLLECTIONS = [
-  'sessions', 'passwordResets', 'services', 'reservations',
+  'sessions', 'services', 'reservations', 'inventoryMovements',
   'employees', 'clients', 'users', 'rooms', 'schedules',
-  'products', 'treatments', 'branches', 'media', 'counters',
+  'products', 'treatments', 'branches', 'media',
 ];
 
 async function resetAppData() {

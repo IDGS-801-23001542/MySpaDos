@@ -11,6 +11,7 @@ import { config } from '../lib/config.js';
 import { emailReady, sendMail } from '../lib/mailer.js';
 import { ensureAccountAvailable } from '../lib/accountConflicts.js';
 import { phoneKey, duplicateFieldMessage } from '../lib/accountFields.js';
+import { makePasswordResetToken, resetTokenReady, parsePasswordResetToken, verifyPasswordResetToken } from '../lib/resetTokens.js';
 
 const router = Router();
 
@@ -143,13 +144,8 @@ router.post('/forgot-password', route(async (req, res) => {
   const { email } = validate(z.object({ email: emailField }), req.body);
   const message = 'Si ese correo tiene una cuenta, recibirás instrucciones para recuperar el acceso.';
   const user = await col('users').findOne({ emailLower: email, status: 'ACTIVO' });
-  if (user && emailReady()) {
-    const token = newToken();
-    await col('passwordResets').deleteMany({ userId: user.id });
-    await col('passwordResets').insertOne({
-      tokenHash: hashToken(token), userId: user.id,
-      expiresAt: new Date(Date.now() + 20 * 60 * 1000),
-    });
+  if (user && emailReady() && resetTokenReady()) {
+    const token = makePasswordResetToken(user);
     const link = `${config.appUrl}/restablecer/${token}`;
     try {
       await sendMail({
@@ -161,16 +157,20 @@ router.post('/forgot-password', route(async (req, res) => {
       console.error('[SMTP]', error.message);
     }
   }
-  res.json({ message, smtpConfigured: emailReady() });
+  res.json({ message, smtpConfigured: emailReady() && resetTokenReady() });
 }));
 
 router.post('/reset-password', route(async (req, res) => {
   const { token, password } = validate(z.object({ token: z.string().min(20), password: passwordField }), req.body);
-  const hash = hashToken(token);
-  const reset = await col('passwordResets').findOneAndDelete({ tokenHash: hash, expiresAt: { $gt: new Date() } });
-  assert(reset, 400, 'El enlace es inválido, ya fue usado o expiró');
-  await col('users').updateOne({ id: reset.userId }, { $set: { passwordHash: await hashPassword(password) } });
-  await revokeUserSessions(reset.userId);
+  const parsed = parsePasswordResetToken(token);
+  assert(parsed && resetTokenReady(), 400, 'El enlace es inválido o expiró');
+  const user = await col('users').findOne({ id: parsed.uid, status: 'ACTIVO' });
+  assert(verifyPasswordResetToken(token, user), 400, 'El enlace es inválido, ya fue usado o expiró');
+  // Compare-and-swap: solo una solicitud puede consumir este enlace con éxito.
+  const updated = await col('users').updateOne({ id: user.id, passwordHash: user.passwordHash },
+    { $set: { passwordHash: await hashPassword(password) } });
+  assert(updated.modifiedCount === 1, 400, 'El enlace ya fue usado. Solicita otro.');
+  await revokeUserSessions(user.id);
   res.json({ message: 'Contraseña restablecida. Ya puedes iniciar sesión.' });
 }));
 

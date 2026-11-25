@@ -1,11 +1,12 @@
-import { AlertCircle, Check, ChevronRight, Compass, Flower2, LoaderCircle, X } from 'lucide-react';
+import { AlertCircle, Check, ChevronRight, Compass, LoaderCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { pretty } from '../lib.js';
+import BrandFlower from './BrandFlower.jsx';
 
 export function Brand({ compact = false }) {
   return (
     <div className={`brand ${compact ? 'brand-small' : ''}`}>
-      <span className="brand-symbol"><Flower2 size={24} strokeWidth={1.5} /></span>
+      <span className="brand-symbol"><BrandFlower size={35} /></span>
       <span className="brand-copy"><strong>MySpa<span>2</span></strong>{!compact && <small>SPA · RITUALES DE BIENESTAR</small>}</span>
     </div>
   );
@@ -16,9 +17,9 @@ export function StatusBadge({ value }) {
   const variant = ({
     ACTIVO: 'success', ATENDIDA: 'success', DISPONIBLE: 'success',
     PENDIENTE: 'warning', INACTIVO: 'neutral',
-    CANCELADA: 'danger', VENCIDA: 'danger', ERROR: 'danger',
+    CANCELADA: 'danger', NO_ASISTIO: 'danger', VENCIDA: 'danger', ERROR: 'danger',
   })[word] || 'neutral';
-  return <span className={`status status-${variant}`}><span className="status-dot" />{pretty(word)}</span>;
+  return <span className={`status status-${variant}`}><span className="status-dot" />{word === 'NO_ASISTIO' ? 'No asistió' : pretty(word)}</span>;
 }
 
 export function PageHeader({ eyebrow, title, subtitle, actions }) {

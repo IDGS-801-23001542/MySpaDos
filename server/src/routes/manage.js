@@ -7,6 +7,7 @@ import { employeeSchema, clientSchema, productSchema, branchSchema, roomSchema, 
 import { generateEmployeeNumber, generateClientNumber } from '../lib/numbers.js';
 import { ensureAccountAvailable } from '../lib/accountConflicts.js';
 import { phoneKey, duplicateFieldMessage } from '../lib/accountFields.js';
+import { catalogStatusFilter, catalogSort } from '../lib/catalogListing.js';
 
 const router = Router();
 router.use(requireEmployee);
@@ -84,8 +85,7 @@ async function protectDeactivate(resource, existing) {
 router.get('/:resource', route(async (req, res) => {
   const collection = collectionFor(req.params.resource);
   const regex = searchRegex(req.query.q);
-  const filter = {};
-  if (req.query.status && ['ACTIVO', 'INACTIVO'].includes(req.query.status)) filter.status = req.query.status;
+  const filter = catalogStatusFilter(req.params.resource, req.query.status);
   if (regex) {
     filter.$or = searchable[req.params.resource].map((key) => ({ [key]: regex }));
     if (req.params.resource === 'products' && Number.isFinite(Number(req.query.q))) {
@@ -95,7 +95,7 @@ router.get('/:resource', route(async (req, res) => {
       filter.$or.push({ latitude: Number(req.query.q) }, { longitude: Number(req.query.q) });
     }
   }
-  const items = await collection.find(filter).sort({ createdAt: -1, id: -1 }).limit(500).toArray();
+  const items = await collection.find(filter).sort(catalogSort(req.params.resource)).limit(500).toArray();
   const userRoles = req.params.resource === 'employees' && req.user.role === 'ADMIN'
     ? new Map((await col('users').find({ id: { $in: items.map((entry) => entry.userId) } })
       .project({ id: 1, role: 1 }).toArray()).map((user) => [user.id, user.role]))

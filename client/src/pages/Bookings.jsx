@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarDays, Clock3, Edit3, Plus, Search, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CalendarDays, Clock3, Edit3, Plus, Search, XCircle, UserX } from 'lucide-react';
 import { api, localDateISO, shortDate } from '../lib.js';
 import { useAuth } from '../hooks/useAuth.js';
 import BookingGuests, { resizeGuests } from '../components/BookingGuests.jsx';
@@ -9,6 +10,7 @@ const empty = { clientId: '', roomId: '', scheduleId: '', date: '', partySize: 1
 
 export default function BookingsPage() {
   const { identity } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [clients, setClients] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -29,7 +31,12 @@ export default function BookingsPage() {
     catch (e) { setError(e.message); }
   }
 
-  useEffect(() => { load(); }, [filter]);
+  useEffect(() => {
+    load();
+    const refresh = () => load();
+    window.addEventListener('myspa:reservations-updated', refresh);
+    return () => window.removeEventListener('myspa:reservations-updated', refresh);
+  }, [filter]);
   useEffect(() => {
     api('/manage/clients?status=ACTIVO').then(setClients).catch(() => {});
     api('/public/rooms').then(setRooms).catch(() => {});
@@ -69,16 +76,27 @@ export default function BookingsPage() {
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
+  async function noShow(item) {
+    if (!window.confirm(`¿Confirmar que ${item.clientName} no asistió?`)) return;
+    setBusy(true); setError('');
+    try {
+      await api(`/reservations/${item.id}/no-show`, { method: 'POST' });
+      setMessage('Ausencia registrada.'); await load();
+    } catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  }
   const visible = items.filter((item) => [item.id, item.clientName, item.roomName, item.branchName, item.date, item.start, item.end, item.status].some((value) => String(value ?? '').toLowerCase().includes(query.toLowerCase())));
   return <div className="staff-view">
     <PageHeader eyebrow="AGENDA DE BIENESTAR" title="Reservaciones" subtitle="Organiza los espacios y horarios de tu sucursal." actions={<button className="button button-primary" onClick={openNew}><Plus size={18} /> Nueva reservación</button>} />
     <div className="surface-card table-shell"><div className="table-toolbar"><div className="search-field"><Search size={18} /><input aria-label="Buscar reservaciones" placeholder="Buscar cliente, sala, fecha o folio" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
-      <select aria-label="Filtrar estado" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="">Todos los estados</option><option value="PENDIENTE">Pendientes</option><option value="ATENDIDA">Atendidas</option><option value="CANCELADA">Canceladas</option></select></div>
+      <select aria-label="Filtrar estado" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="">Todos los estados</option><option value="PENDIENTE">Pendientes</option><option value="ATENDIDA">Atendidas</option><option value="CANCELADA">Canceladas</option><option value="NO_ASISTIO">No asistió</option></select></div>
       <Alert>{error}</Alert>{message && <Alert type="success">{message}</Alert>}
       {visible.length ? <div className="table-responsive"><table className="data-table"><thead><tr><th>Cliente</th><th>Sala</th><th>Fecha / horario</th><th>Estatus</th><th>Acciones</th></tr></thead><tbody>
         {visible.map((item) => <tr key={item.id}><td><strong>{item.clientName}</strong><small>Reservación #{item.id}</small></td><td>{item.roomName}<small>{item.branchName}</small></td><td>{shortDate(item.date)}<small>{item.scheduleText} · {item.partySize || 1} persona(s)</small>
           {item.guests?.length > 0 && <small>Asistentes: {item.guests.map((guest) => guest.name).join(' y ')}</small>}</td><td><StatusBadge value={item.status} /></td>
-          <td><div className="table-actions">{item.status === 'PENDIENTE' ? <><button title="Editar" onClick={() => openEdit(item)}><Edit3 size={17} /></button><button title="Cancelar" disabled={busy} onClick={() => cancel(item)}><XCircle size={17} /></button></> : <span className="muted">—</span>}</div></td></tr>)}
+          <td><div className="table-actions">{item.status === 'PENDIENTE' ? <>{item.endAt && new Date(item.endAt) <= new Date()
+            ? <><button title="Marcar No asistió" disabled={busy} onClick={() => noShow(item)}><UserX size={17} /></button><button type="button" className="button button-outline" title="Registrar servicio" disabled={busy} onClick={() => navigate(`/personal/servicios?reservacion=${item.id}`)}>Atender</button></>
+            : <><button title="Editar" onClick={() => openEdit(item)}><Edit3 size={17} /></button><button title="Cancelar" disabled={busy} onClick={() => cancel(item)}><XCircle size={17} /></button></>}</> : <span className="muted">—</span>}</div></td></tr>)}
       </tbody></table></div> : <Empty title="La agenda está vacía" description="Las nuevas reservaciones aparecerán aquí." />}
     </div>
     {edit && <Modal title={edit === 'new' ? 'Nueva reservación' : 'Editar reservación'} subtitle="Selecciona un cliente y un horario libre de la sucursal." onClose={() => setEdit(null)}>

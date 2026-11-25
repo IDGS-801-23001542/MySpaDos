@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  CalendarDays, ClipboardList, DoorOpen, Flower2, Home, Leaf, LayoutDashboard,
+  CalendarDays, ClipboardList, DoorOpen, Home, Leaf, LayoutDashboard,
   LogIn, LogOut, Menu, Package, Scissors, Settings2, Sparkles, UserRound,
   Users, X,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.js';
 import { Brand } from './UI.jsx';
+import BrandFlower from './BrandFlower.jsx';
 import { PwaStatus } from './PwaStatus.jsx';
+import { AttendancePrompt } from './AttendancePrompt.jsx';
 
 const adminLinks = [
   { label: 'Vista general', to: '/personal', icon: LayoutDashboard },
@@ -102,6 +104,7 @@ export function Layout() {
   return (
     <div className="app-shell">
       <PwaStatus />
+      <AttendancePrompt />
       <div className="top-announcement">
         <Sparkles size={13} /> Un espacio para reconectar contigo <Sparkles size={13} />
       </div>
@@ -142,7 +145,7 @@ export function Layout() {
         </div>
         {identity ? <div className="sidebar-person">
           <div className="person-avatar">{identity.profile?.photoUrl
-            ? <img src={identity.profile.photoUrl} alt="Foto de perfil" /> : <Flower2 size={23} />}</div>
+            ? <img src={identity.profile.photoUrl} alt="Foto de perfil" /> : <BrandFlower size={30} />}</div>
           <div><strong>{identity.profile?.name || identity.user.username}</strong>
             <small>{role === 'ADMIN' ? 'Administración' : isStaff
               ? identity.profile?.position || 'Personal MySpa2' : 'Cliente MySpa2'}</small></div>

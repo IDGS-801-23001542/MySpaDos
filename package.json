@@ -14,8 +14,10 @@
     "seed": "node scripts/seed.mjs",
     "seed:check": "node scripts/seed.mjs --check",
     "check": "node scripts/check.mjs && npm run test",
-    "test": "node scripts/selftest.mjs && node scripts/pwa-check.mjs",
-    "admin:password": "node scripts/set-admin-password.mjs"
+    "test": "node --test",
+    "test:attendance": "node --test tests/attendance-auth-reducers.test.mjs",
+    "admin:password": "node scripts/set-admin-password.mjs",
+    "verify": "npm run check && npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
