@@ -24,7 +24,7 @@ const person = [
 const account = [f('username', 'Nombre de usuario'), f('email', 'Correo electrónico', 'email'), f('password', 'Contraseña', 'password')];
 
 const configs = {
-  employees: { title: 'Empleados', singular: 'empleado', caption: 'Tu equipo es el corazón de cada experiencia.', fields: [...person, f('position', 'Puesto'), f('accessRole', 'Permisos de acceso', 'select', [['EMPLEADO', 'Empleado'], ['ADMIN', 'Administrador']]), f('branchId', 'Sucursal', 'branch'), ...account, f('photoUrl', 'Fotografía', 'image', null, false), f('status', 'Estatus', 'select', activeOptions)], columns: ['employeeNumber', 'name', 'lastName', 'position', 'status'] },
+  employees: { title: 'Empleados', singular: 'empleado', caption: 'Tu equipo es el corazón de cada experiencia.', fields: [...person, f('position', 'Puesto'), f('accessRole', 'Permisos de acceso', 'select', [['EMPLEADO', 'Empleado'], ['ADMIN', 'Administrador']]), f('branchId', 'Sucursal', 'branch'), ...account, f('photoUrl', 'Fotografía', 'image', null, false), f('status', 'Estatus', 'select', activeOptions)], columns: ['employeeNumber', 'name', 'lastName', 'position', 'branchId', 'status'] },
   clients: { title: 'Clientes', singular: 'cliente', caption: 'Gestiona a las personas que confían en MySpa2.', fields: [...person, ...account, f('status', 'Estatus', 'select', activeOptions)], columns: ['clientNumber', 'name', 'lastName', 'email', 'status'] },
   products: { title: 'Productos', singular: 'producto', caption: 'Los detalles que acompañan cada ritual.', fields: [f('name', 'Nombre'), f('brand', 'Marca'), f('usePrice', 'Precio por uso', 'number'), f('stock', 'Unidades disponibles', 'number'), f('trackStock', 'Descontar unidades al realizar un servicio', 'checkbox', null, false), f('minStock', 'Alerta de stock mínimo', 'number'), f('status', 'Estatus', 'select', activeOptions)], columns: ['name', 'brand', 'usePrice', 'stock', 'trackStock', 'minStock', 'status'] },
   branches: { title: 'Sucursales', singular: 'sucursal', caption: 'Los lugares donde comienza la calma.', fields: [f('name', 'Nombre'), f('address', 'Domicilio', 'text', null, false), f('stateName', 'Estado', 'text', null, false), f('municipality', 'Municipio / Ciudad', 'text', null, false), f('postalCode', 'Código postal', 'text', null, false), f('latitude', 'Latitud', 'number'), f('longitude', 'Longitud', 'number'), f('status', 'Estatus', 'select', activeOptions)], columns: ['name', 'address', 'municipality', 'stateName', 'postalCode', 'status'] },
@@ -39,9 +39,8 @@ function emptyValues(config) {
   return object;
 }
 
-function shorten(value) {
-  if (value === null || value === undefined) return '—';
-  return String(value).length > 85 ? `${String(value).slice(0, 82)}...` : value;
+function displayValue(value) {
+  return value === null || value === undefined || value === '' ? '—' : String(value);
 }
 
 
@@ -160,7 +159,7 @@ export default function CatalogPage({ resource }) {
     <div className="surface-card table-shell"><div className="table-toolbar">
       <div className="search-field"><Search size={18} /><input aria-label="Buscar registros" value={q} placeholder={`Buscar ${config.title.toLowerCase()}...`} onChange={(e) => setQ(e.target.value)} /></div>
       {resource !== 'schedules' && <select aria-label="Filtrar estatus" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="INACTIVO">Inactivos</option></select>}
-    </div><Alert>{error}</Alert>{message && <Alert type="success">{message}</Alert>}
+    </div><div className="table-meta" role="status">{items.length} {items.length === 1 ? 'registro mostrado' : 'registros mostrados'}</div><Alert>{error}</Alert>{message && <Alert type="success">{message}</Alert>}
       {resource === 'products' && (
         <p className="inventory-note">
           Para recibir unidades nuevas utiliza <strong>Agregar existencias</strong>.
@@ -169,14 +168,14 @@ export default function CatalogPage({ resource }) {
         </p>
       )}
       {items.length ? <div className="table-responsive"><table className="data-table"><thead><tr>{config.columns.map((key) => <th key={key}>{labels[key] || pretty(key)}</th>)}<th>Acciones</th></tr></thead><tbody>
-        {items.map((record) => <tr key={record.id}>{config.columns.map((key) => <td key={key}>{key === 'status' ? <StatusBadge value={record.status} />
+        {items.map((record) => <tr key={record.id}>{config.columns.map((key) => <td key={key} data-label={labels[key] || pretty(key)}>{key === 'status' ? <StatusBadge value={record.status} />
           : key === 'branchId' ? branchNames.get(record.branchId) || `#${record.branchId}`
           : key === 'usePrice' ? money(record.usePrice)
           : key === 'trackStock' ? (record.trackStock === false ? 'Reutilizable' : 'Consumible')
           : key === 'stock' ? <span className={Number(record.stock || 0) <= Number(record.minStock || 0) ? 'stock-low' : 'stock-ok'}>
             {record.stock ?? 0} {Number(record.stock || 0) <= Number(record.minStock || 0) ? '· Reponer' : ''}
-          </span> : shorten(record[key])}</td>)}
-          <td>
+          </span> : displayValue(record[key])}</td>)}
+          <td data-label="Acciones">
             <div className="table-actions">
               {resource === 'products' && record.status === 'ACTIVO' && (
                 <button

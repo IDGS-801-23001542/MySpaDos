@@ -6,6 +6,8 @@ import { requireUser, assertSameBranch, isStaff } from '../lib/security.js';
 import { productCost, sumCosts } from '../lib/costs.js';
 import { inventoryDeltas } from '../lib/inventory.js';
 import { reconcileExpiredReservations } from '../lib/attendance.js';
+import { servicePersonnel } from '../lib/servicePersonnel.js';
+import { serviceHistoryFilter, serviceHistoryPage } from '../lib/serviceHistory.js';
 
 const router = Router();
 router.use(requireUser);
@@ -88,6 +90,50 @@ router.get('/', route(async (req, res) => {
   }
   const records = await col('services').find(filter).sort({ dateTime: -1 }).limit(300).toArray();
   res.json({ data: records.map(publicRecord) });
+}));
+
+// Paginated, staff-only history: no global 300-record cap.
+router.get('/history', route(async (req, res) => {
+  assert(isStaff(req.user), 403, 'Acceso exclusivo para personal');
+  const employee = await employeeProfile(req);
+  assert(employee, 403, 'Empleado inválido');
+  const admin = req.user.role === 'ADMIN';
+  if (!admin) assert(Number.isSafeInteger(employee.branchId), 403, 'Sucursal inválida');
+  const filter = serviceHistoryFilter(admin ? {} : { branchId: employee.branchId }, req.query.q);
+  const services = col('services');
+  const total = await services.countDocuments(filter);
+  const { page, pages, skip, pageSize } = serviceHistoryPage(req.query.page, total);
+  const records = await services.find(filter).sort({ dateTime: -1, id: -1 }).skip(skip).limit(pageSize).toArray();
+  const ids = [...new Set(records.map((record) => record.branchId).filter(Number.isSafeInteger))];
+  const branches = ids.length ? await col('branches').find({ id: { $in: ids } }).project({ id: 1, name: 1 }).toArray() : [];
+  const names = new Map(branches.map((branch) => [branch.id, branch.name]));
+  res.json({ data: { items: records.map((record) => ({ ...publicRecord(record),
+    branchName: names.get(record.branchId) || `Sucursal #${record.branchId}`,
+  })), total, page, pages, pageSize } });
+}));
+
+// Resolve the appointment and eligible personnel from the same authoritative branch.
+router.get('/reservation/:id', route(async (req, res) => {
+  assert(isStaff(req.user), 403, 'Acceso exclusivo para personal');
+  await reconcileExpiredReservations();
+  const booking = await col('reservations').findOne({ id: idParam(req.params.id) });
+  assert(booking, 404, 'Reservación no encontrada');
+  assertSameBranch(await employeeProfile(req), booking.branchId, req.user);
+  const [client, room, branch, schedule, employees] = await Promise.all([
+    col('clients').findOne({ id: booking.clientId }),
+    col('rooms').findOne({ id: booking.roomId }),
+    col('branches').findOne({ id: booking.branchId }),
+    col('schedules').findOne({ id: booking.scheduleId }),
+    servicePersonnel(col('employees'), booking),
+  ]);
+  res.json({ data: {
+    booking: { ...publicRecord(booking),
+      clientName: client ? `${client.name} ${client.lastName}` : 'Cliente',
+      roomName: room?.name || `Sala #${booking.roomId}`,
+      branchName: branch?.name || `Sucursal #${booking.branchId}`,
+      scheduleText: schedule ? `${schedule.start} – ${schedule.end}` : `${booking.start || '—'} – ${booking.end || '—'}`,
+    }, employees,
+  } });
 }));
 
 router.get('/:id', route(async (req, res) => {

@@ -16,7 +16,7 @@ function mySpaPwa() {
         .filter((name) => /\.(js|css|html|svg|png|woff2?)$/.test(name))
         .map((name) => `/${name}`);
       const precache = [...new Set([
-        '/', '/index.html', '/manifest.webmanifest', '/favicon.svg',
+        '/', '/index.html', '/manifest.webmanifest', '/favicon.svg', '/brand-flower.svg',
         '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png',
         ...['lavanda', 'olivo', 'loto', 'bambu', 'salvia', 'arena', 'niebla']
           .map((room) => `/rooms/${room}.webp`),

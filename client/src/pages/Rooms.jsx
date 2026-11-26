@@ -4,18 +4,19 @@ import {
   ArrowLeft, ArrowUpRight, CalendarDays, Clock3, DoorOpen,
   MapPin, Search, ShieldCheck, WifiOff,
 } from 'lucide-react';
-import { api, localDateISO, publicRoomPhoto } from '../lib.js';
+import { api, localDateISO } from '../lib.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { useOnlineStatus } from '../hooks/useOnlineStatus.js';
 import { useDebounce } from '../hooks/useDebounce.js';
 import BookingGuests, { initialGuests, resizeGuests } from '../components/BookingGuests.jsx';
-import { Alert, Empty, Field, PageHeader, PrimaryButton, Spinner } from '../components/UI.jsx';
+import { Alert, Brand, Empty, Field, PageHeader, PrimaryButton, Spinner } from '../components/UI.jsx';
 
 function RoomArtwork({ room, online, large = false }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [room.photoUrl, online]);
-  if (room.photoUrl && !failed) {
-    return <img src={publicRoomPhoto(room.photoUrl)} alt={`Fotografía de ${room.name}`} loading="eager"
+  const local = /^\/rooms\/[^/]+\.webp$/.test(room.photoUrl || '');
+  if (room.photoUrl && (online || local) && !failed) {
+    return <img src={room.photoUrl} alt={`Fotografía de ${room.name}`} loading={large ? 'eager' : 'lazy'}
       onError={() => setFailed(true)} />;
   }
   return <div className="room-illustration" aria-label={`Imagen ilustrativa de ${room.name}`}>
@@ -226,6 +227,7 @@ export function RoomPage() {
         </div>
       </div>
       <aside className="booking-panel">
+        <div className="booking-brand"><Brand compact symbolOnly /></div>
         <span className="eyebrow">TU MOMENTO ES AHORA</span>
         <h2>Reserva tu espacio</h2>
         {!online ? <div className="myspa-offline-note">

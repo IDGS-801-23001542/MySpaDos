@@ -3,14 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, LockKeyhole, Mail, Sparkles, Sun } from 'lucide-react';
 import { api } from '../lib.js';
 import { useAuth } from '../hooks/useAuth.js';
-import { Alert, Field, PrimaryButton } from '../components/UI.jsx';
+import { Alert, Brand, Field, PrimaryButton } from '../components/UI.jsx';
 
 const genders = [['MASCULINO', 'Masculino'], ['FEMENINO', 'Femenino'], ['OTRO', 'Otro']];
 
 function AuthFrame({ eyebrow, title, subtitle, children, centered = false }) {
   return <div className={`auth-layout ${centered ? 'auth-layout-centered' : ''}`}><div className="auth-deco"><div className="auth-deco-icon"><Sun size={72} strokeWidth={0.8} /></div>
     <span className="eyebrow">UN MOMENTO PARA TI</span><h2>El bienestar comienza con <em>una pausa.</em></h2><p>Descubre un lugar más sereno para cuidar de ti.</p>
-  </div><div className="auth-card"><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p className="auth-subtitle">{subtitle}</p>{children}</div></div>;
+  </div><div className="auth-card"><div className="auth-brand"><Brand symbolOnly /></div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p className="auth-subtitle">{subtitle}</p>{children}</div></div>;
 }
 
 export default function LoginPage() {
@@ -53,7 +53,7 @@ export function RegisterPage() {
     finally { setBusy(false); }
   }
   return <AuthFrame centered eyebrow="TU BIENESTAR EMPIEZA AQUÍ" title="Crea tu espacio" subtitle="Regístrate para reservar nuestras salas de spa.">
-    <form className="form-grid" onSubmit={submit}><div className="field-full"><Alert>{error}</Alert></div>
+    <form className="form-grid" onSubmit={submit}><div className="field-full"><Alert>{error}</Alert><div className="form-subheading"><h2>Datos personales</h2><p>Los campos con * son obligatorios.</p></div></div>
       <Field label="Nombre *"><input required minLength={2} value={form.name} onChange={edit('name')} /></Field>
       <Field label="Apellido paterno *"><input required minLength={2} value={form.lastName} onChange={edit('lastName')} /></Field>
       <Field label="Apellido materno"><input value={form.secondLastName} onChange={edit('secondLastName')} /></Field>
@@ -61,6 +61,7 @@ export function RegisterPage() {
       <Field label="RFC (opcional)"><input value={form.rfc} onChange={edit('rfc')} maxLength={13} placeholder="Si cuentas con él" /></Field>
       <Field label="Teléfono"><input type="tel" value={form.phone} onChange={edit('phone')} /></Field>
       <Field label="Domicilio" full><input value={form.address} onChange={edit('address')} /></Field>
+      <div className="field-full form-subheading"><h2>Datos de acceso</h2><p>Los utilizarás para ingresar a MySpa2.</p></div>
       <Field label="Correo electrónico *" full><input type="email" required value={form.email} onChange={edit('email')} /></Field>
       <Field label="Nombre de usuario *"><input required minLength={4} value={form.username} onChange={edit('username')} /></Field>
       <Field label="Contraseña *" hint="10+ caracteres, mayúscula, minúscula y número"><input required type="password" minLength={10} autoComplete="new-password" value={form.password} onChange={edit('password')} /></Field>

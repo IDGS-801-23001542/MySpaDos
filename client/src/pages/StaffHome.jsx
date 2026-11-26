@@ -146,6 +146,11 @@ export default function StaffHome() {
           <strong>{value}</strong><small>{helper}</small>
         </div>)}</div>
 
+      <section className="overview-history-link">
+        <div className="overview-history-icon"><HandHeart size={29} strokeWidth={1.6} /></div>
+        <div><span className="eyebrow">HISTORIAL DE SERVICIOS</span><h2>{stats.servicesCount} servicios registrados</h2><p>{admin ? 'Todas las sucursales' : 'Tu sucursal'} · Consulta las atenciones, tratamientos, productos y costos de cualquier fecha.</p></div>
+        <Link to="/personal/servicios" className="button button-primary">Ver historial completo <ArrowRight size={18} /></Link>
+      </section>
       <div className="overview-lists">
         <section className="surface-card overview-panel">
           <div className="overview-section-heading"><div><span className="eyebrow">ATENCIÓN DEL DÍA</span><h2>Reservaciones de hoy</h2>

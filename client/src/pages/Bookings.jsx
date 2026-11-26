@@ -87,14 +87,15 @@ export default function BookingsPage() {
   }
   const visible = items.filter((item) => [item.id, item.clientName, item.roomName, item.branchName, item.date, item.start, item.end, item.status].some((value) => String(value ?? '').toLowerCase().includes(query.toLowerCase())));
   return <div className="staff-view">
-    <PageHeader eyebrow="AGENDA DE BIENESTAR" title="Reservaciones" subtitle="Organiza los espacios y horarios de tu sucursal." actions={<button className="button button-primary" onClick={openNew}><Plus size={18} /> Nueva reservación</button>} />
+    <PageHeader eyebrow="AGENDA DE BIENESTAR" title="Reservaciones" subtitle={identity.user.role === 'ADMIN' ? 'Organiza los espacios y horarios de todas las sucursales.' : 'Organiza los espacios y horarios de tu sucursal.'} actions={<button className="button button-primary" onClick={openNew}><Plus size={18} /> Nueva reservación</button>} />
     <div className="surface-card table-shell"><div className="table-toolbar"><div className="search-field"><Search size={18} /><input aria-label="Buscar reservaciones" placeholder="Buscar cliente, sala, fecha o folio" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
       <select aria-label="Filtrar estado" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="">Todos los estados</option><option value="PENDIENTE">Pendientes</option><option value="ATENDIDA">Atendidas</option><option value="CANCELADA">Canceladas</option><option value="NO_ASISTIO">No asistió</option></select></div>
+      <div className="table-meta" role="status">{visible.length} {visible.length === 1 ? 'reservación mostrada' : 'reservaciones mostradas'}</div>
       <Alert>{error}</Alert>{message && <Alert type="success">{message}</Alert>}
       {visible.length ? <div className="table-responsive"><table className="data-table"><thead><tr><th>Cliente</th><th>Sala</th><th>Fecha / horario</th><th>Estatus</th><th>Acciones</th></tr></thead><tbody>
-        {visible.map((item) => <tr key={item.id}><td><strong>{item.clientName}</strong><small>Reservación #{item.id}</small></td><td>{item.roomName}<small>{item.branchName}</small></td><td>{shortDate(item.date)}<small>{item.scheduleText} · {item.partySize || 1} persona(s)</small>
-          {item.guests?.length > 0 && <small>Asistentes: {item.guests.map((guest) => guest.name).join(' y ')}</small>}</td><td><StatusBadge value={item.status} /></td>
-          <td><div className="table-actions">{item.status === 'PENDIENTE' ? <>{item.endAt && new Date(item.endAt) <= new Date()
+        {visible.map((item) => <tr key={item.id}><td data-label="Cliente"><strong>{item.clientName}</strong><small>Reservación #{item.id}</small></td><td data-label="Sala">{item.roomName}<small>{item.branchName}</small></td><td data-label="Fecha / horario">{shortDate(item.date)}<small>{item.scheduleText} · {item.partySize || 1} persona(s)</small>
+          {item.guests?.length > 0 && <small>Asistentes: {item.guests.map((guest) => guest.name).join(' y ')}</small>}</td><td data-label="Estatus"><StatusBadge value={item.status} /></td>
+          <td data-label="Acciones"><div className="table-actions">{item.status === 'PENDIENTE' ? <>{item.endAt && new Date(item.endAt) <= new Date()
             ? <><button title="Marcar No asistió" disabled={busy} onClick={() => noShow(item)}><UserX size={17} /></button><button type="button" className="button button-outline" title="Registrar servicio" disabled={busy} onClick={() => navigate(`/personal/servicios?reservacion=${item.id}`)}>Atender</button></>
             : <><button title="Editar" onClick={() => openEdit(item)}><Edit3 size={17} /></button><button title="Cancelar" disabled={busy} onClick={() => cancel(item)}><XCircle size={17} /></button></>}</> : <span className="muted">—</span>}</div></td></tr>)}
       </tbody></table></div> : <Empty title="La agenda está vacía" description="Las nuevas reservaciones aparecerán aquí." />}

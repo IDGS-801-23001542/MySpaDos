@@ -4,7 +4,7 @@ import { api, dateLabel, money, shortDate } from '../lib.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { ImageUpload } from '../components/ImageUpload.jsx';
 import { ProfileAvatar } from '../components/ProfileAvatar.jsx';
-import { Alert, Empty, Field, PageHeader, PrimaryButton, StatusBadge } from '../components/UI.jsx';
+import { Alert, Brand, Empty, Field, PageHeader, PrimaryButton, StatusBadge } from '../components/UI.jsx';
 
 const sections = {
   bookings: [
@@ -187,6 +187,7 @@ export default function AccountPage({ mode = 'bookings' }) {
                 </div>
                 <strong>{money(service.totalCost)}</strong>
               </div>
+              <details className="service-expand"><summary><span>{service.treatments.length} tratamiento(s)</span><span className="service-expand-label" /></summary>
               {service.treatments.map((line, index) => (
                 <div key={index} className="service-line">
                   <strong>{line.guestName ? `${line.guestName} · ` : ''}{line.name}</strong><span>{money(line.totalCost)}</span>
@@ -195,6 +196,7 @@ export default function AccountPage({ mode = 'bookings' }) {
                   ))}</ul>
                 </div>
               ))}
+              </details>
             </article>
           )) : (
             <Empty title="Todavía no has recibido servicios" description="Cuando completes una experiencia podrás consultar sus tratamientos y costos." />
@@ -204,6 +206,7 @@ export default function AccountPage({ mode = 'bookings' }) {
 
       {mode === 'profile' && tab === 'perfil' && (
         <form className="surface-card form-grid" onSubmit={saveProfile}>
+          <div className="field-full inline-form-heading"><Brand compact /><div><h2>Datos de mi cuenta</h2><p>Mantén tu información de contacto actualizada.</p></div></div>
           <div className="field-full">
             <Field label="Mi fotografía" hint="Puedes agregar o cambiar tu foto de perfil.">
               <ImageUpload
@@ -236,6 +239,7 @@ export default function AccountPage({ mode = 'bookings' }) {
 
       {mode === 'profile' && tab === 'clave' && (
         <form className="surface-card form-stack narrow-form" onSubmit={changePassword}>
+          <div className="inline-form-heading"><Brand compact /><div><h2>Protege tu cuenta</h2><p>Actualiza tu contraseña de acceso.</p></div></div>
           <Field label="Contraseña actual">
             <input type="password" required autoComplete="current-password" value={passwords.current} onChange={(e) => setPasswords({ ...passwords, current: e.target.value })} />
           </Field>

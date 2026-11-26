@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react';
 import { pretty } from '../lib.js';
 import BrandFlower from './BrandFlower.jsx';
 
-export function Brand({ compact = false }) {
+export function Brand({ compact = false, symbolOnly = false, label = 'MySpa2' }) {
   return (
-    <div className={`brand ${compact ? 'brand-small' : ''}`}>
-      <span className="brand-symbol"><BrandFlower size={35} /></span>
-      <span className="brand-copy"><strong>MySpa<span>2</span></strong>{!compact && <small>SPA · RITUALES DE BIENESTAR</small>}</span>
+    <div className={`brand ${compact ? 'brand-small' : ''} ${symbolOnly ? 'brand-symbol-only' : ''}`} aria-label={label}>
+      <span className="brand-symbol"><BrandFlower size={compact ? 30 : 35} /></span>
+      {!symbolOnly && <span className="brand-copy"><strong>MySpa<span>2</span></strong>{!compact && <small>SPA · RITUALES DE BIENESTAR</small>}</span>}
     </div>
   );
 }
@@ -60,7 +60,7 @@ export function Modal({ title, subtitle, children, onClose, wide = false }) {
     <div className="modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className={`modal ${wide ? 'modal-wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
         <header className="modal-header">
-          <div><span className="eyebrow">MYSPA2</span><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
+          <div className="modal-heading"><div className="modal-brand"><Brand compact /></div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
           <button type="button" className="icon-button" aria-label="Cerrar" onClick={onClose}><X size={20} /></button>
         </header>
         {children}
@@ -71,7 +71,7 @@ export function Modal({ title, subtitle, children, onClose, wide = false }) {
 
 export function PrimaryButton({ children, busy, ...props }) {
   return (
-    <button className="button button-primary" disabled={busy || props.disabled} {...props}>
+    <button className="button button-primary" {...props} disabled={busy || props.disabled}>
       {busy ? <LoaderCircle size={18} className="spin" /> : null}{children}
       {!busy && <ChevronRight size={17} />}
     </button>

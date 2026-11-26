@@ -1,7 +1,6 @@
 import { useEffect, useReducer } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Alert, Modal } from './UI.jsx';
-import BrandFlower from './BrandFlower.jsx';
 import { api, shortDate } from '../lib.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { attendanceReducer, initialAttendanceState } from '../reducers/attendanceReducer.js';
@@ -81,10 +80,10 @@ export function AttendancePrompt() {
       : 'La reservación ya inició: confirma que el personal esté listo para recibir al cliente.'}
     onClose={dismiss}>
     <div className="form-stack attendance-content">
-      <div className="attendance-brand-mark"><BrandFlower size={66} /></div>
       <div className="attendance-booking-info">
         <span><strong>Cliente:</strong> {booking.clientName}</span>
         <span><strong>Sala:</strong> {booking.roomName}</span>
+        <span><strong>Sucursal:</strong> {booking.branchName}</span>
         <span><strong>Fecha:</strong> {shortDate(booking.date)}</span>
         <span><strong>Horario:</strong> {booking.scheduleText}</span>
       </div>
